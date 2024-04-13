@@ -6,6 +6,7 @@ from robots.robot import Robot
 from utils.drawing_utils import draw_robot
 from constants import ENV_WIDTH, ENV_HEIGHT
 
+
 class EscapeRoomEnv(gym.Env):
     def __init__(self):
         super().__init__()
@@ -25,7 +26,7 @@ class EscapeRoomEnv(gym.Env):
             5: lambda: self.robot.rotate_servo(-10),
             6: lambda: self.robot.extend_link(True),
             7: lambda: self.robot.extend_link(False),
-            8: self.robot.toggle_gripper
+            8: self.robot.toggle_gripper,
         }
         actions[action]()
         return np.array(self.robot.position), 0, False, {}
@@ -34,7 +35,7 @@ class EscapeRoomEnv(gym.Env):
         self.robot = Robot([400, 300])
         return np.array(self.robot.position)
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         self.screen.fill((255, 255, 255))
         draw_robot(self.screen, self.robot)
         pygame.display.flip()
@@ -42,6 +43,7 @@ class EscapeRoomEnv(gym.Env):
 
     def close(self):
         pygame.quit()
+
 
 # Main executable block
 if __name__ == "__main__":

@@ -1,6 +1,16 @@
 import math
 import pygame
-from constants import ENV_WIDTH, ENV_HEIGHT, ROBOT_RADIUS, WHEEL_WIDTH, WHEEL_HEIGHT, LINK_LENGTH_MIN, LINK_LENGTH_MAX
+from constants import (
+    ENV_WIDTH,
+    ENV_HEIGHT,
+    ROBOT_RADIUS,
+    WHEEL_WIDTH,
+    WHEEL_HEIGHT,
+    LINK_LENGTH_MIN,
+    LINK_LENGTH_MAX,
+    AXEL_LENGTH,
+)
+
 
 class Robot:
     def __init__(self, init_position):
@@ -19,7 +29,9 @@ class Robot:
         self.move_forward(-distance)
 
     def rotate(self, clockwise, degrees):
-        self.angle = (self.angle - degrees) % 360 if clockwise else (self.angle + degrees) % 360
+        self.angle = (
+            (self.angle - degrees) % 360 if clockwise else (self.angle + degrees) % 360
+        )
 
     def toggle_gripper(self):
         self.gripper_closed = not self.gripper_closed
@@ -28,4 +40,8 @@ class Robot:
         self.servo_angle = (self.servo_angle + angle) % 360
 
     def extend_link(self, extend):
-        self.link_length = min(self.link_length + 10, LINK_LENGTH_MAX) if extend else max(self.link_length - 10, LINK_LENGTH_MIN)
+        self.link_length = (
+            min(self.link_length + 10, LINK_LENGTH_MAX)
+            if extend
+            else max(self.link_length - 10, LINK_LENGTH_MIN)
+        )
