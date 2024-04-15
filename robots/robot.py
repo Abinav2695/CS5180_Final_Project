@@ -13,25 +13,39 @@ from constants import (
 
 
 class Robot:
-    def __init__(self, init_position):
-        self.position = init_position
-        self.angle = 0  # in degrees
-        self.servo_angle = 0  # in degrees
+    def __init__(self, init_position: tuple, init_angle: float = 0):
+        self.x, self.y = init_position
+        self.theta = init_angle  # Orientation in radians
+        self.vx, self.vy, self.omega = 0, 0, 0  # Initial velocities
+        self.servo_angle = 0  # Servo angle in degrees
         self.link_length = LINK_LENGTH_MIN
         self.gripper_closed = False
 
-    def move_forward(self, distance):
-        rad_angle = math.radians(self.angle)
-        self.position[0] += distance * math.sin(rad_angle)
-        self.position[1] -= distance * math.cos(rad_angle)
+    def normalize_angle(self, angle):
+        """Normalize an angle to the range [-pi, pi]."""
+        return (angle + math.pi) % (2 * math.pi) - math.pi
 
-    def move_backward(self, distance):
-        self.move_forward(-distance)
+    def update_position(self, left_vel, right_vel, dt=1):
+        v = (left_vel + right_vel) / 2
+        omega = (right_vel - left_vel) / AXEL_LENGTH
+        self.theta += omega * dt
+        self.theta = self.normalize_angle(
+            self.theta
+        )  # Normalize theta to be within [-pi, pi]
 
-    def rotate(self, clockwise, degrees):
-        self.angle = (
-            (self.angle - degrees) % 360 if clockwise else (self.angle + degrees) % 360
-        )
+        self.vx = v * math.cos(self.theta)  # Compute current velocity components
+        self.vy = v * math.sin(self.theta)
+        self.omega = omega  # Angular velocity
+        self.x += self.vx * dt  # Update position based on velocity
+        self.y += self.vy * dt
+
+        penalty, out_of_bounds = self.check_boundaries()
+        return penalty, out_of_bounds
+
+    def check_boundaries(self):
+        if self.x < 0 or self.x > ENV_WIDTH or self.y < 0 or self.y > ENV_HEIGHT:
+            return -100, True  # Collision penalty and signal that it's out of bounds
+        return 0, False  # No penalty and not out of bounds
 
     def toggle_gripper(self):
         self.gripper_closed = not self.gripper_closed
