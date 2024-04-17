@@ -1,6 +1,8 @@
-import pygame
 import math
-from constants import ROBOT_RADIUS, WHEEL_WIDTH, WHEEL_HEIGHT
+
+import pygame
+
+from constants import ROBOT_RADIUS, WHEEL_HEIGHT, WHEEL_WIDTH
 from robots.robot import Robot
 
 

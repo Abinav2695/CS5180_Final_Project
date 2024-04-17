@@ -1,19 +1,21 @@
-import pygame
 import gym
-from gym import spaces
 import numpy as np
+import pygame
+from gym import spaces
 
-from robots.robot import Robot
-from utils.drawing_utils import draw_robot
 from constants import (
-    ENV_WIDTH,
     ENV_HEIGHT,
-    MAX_WHEEL_VELOCITY,
+    ENV_WIDTH,
     GOAL_X_MAX,
     GOAL_X_MIN,
     GOAL_Y_MAX,
     GOAL_Y_MIN,
+    MAX_WHEEL_VELOCITY,
 )
+from robots.checkpoint import Checkpoint
+from robots.robot import Robot
+from robots.walls import Wall, walls_mapping
+from utils.drawing_utils import draw_robot
 
 
 class EscapeRoomEnv(gym.Env):
@@ -26,6 +28,18 @@ class EscapeRoomEnv(gym.Env):
         ### Observation Low [-1.5 -1.5 -3.14 -5. -5. -5. ]  These are percentages 0-1 = 0%- 100% so 1.5 = 150%
         # these are bounds for position. Realistically the environment should have ended
         # long before we reach more than 50% outside
+        self.spawn_x = 200
+        self.spawn_y = 200
+
+        self.walls = [Wall(**wall_data) for wall_data in walls_mapping]
+
+        self.checkpoints = [
+            # Checkpoint((100, 100), 40, (255, 0, 0), 'A'),
+            Checkpoint((300, 50), 100, (255, 0, 0), "A"),
+            Checkpoint((900, 50), 100, (0, 255, 0), "B"),
+            Checkpoint((50, 750), 100, (0, 0, 255), "C"),
+            Checkpoint((950, 750), 100, (255, 0, 0), "G"),  # Goal
+        ]
 
         low = np.array(
             [
@@ -56,7 +70,7 @@ class EscapeRoomEnv(gym.Env):
             dtype=np.float32,
         )
 
-        self.robot = Robot((400, 300))
+        self.robot = Robot((self.spawn_x, self.spawn_y))
         self.max_steps_per_episode = 2000
         self.t = 0  ##Time step counter
 
@@ -71,8 +85,11 @@ class EscapeRoomEnv(gym.Env):
         left_vel = action[0] * self.max_vel
         right_vel = action[1] * self.max_vel
 
-        penalty, out_of_bounds = self.robot.update_position(left_vel, right_vel, dt=1)
+        penalty, out_of_bounds = self.robot.update_and_check_collisions(
+            left_vel, right_vel, self.walls, dt=1
+        )
         reward = penalty
+
         state = np.array(
             [
                 self.robot.x,
@@ -89,7 +106,7 @@ class EscapeRoomEnv(gym.Env):
         truncated = False
         info = {}
 
-        if self.has_reached_goal([self.robot.x, self.robot.y]):
+        if self.has_reached_goal():
             reward += 100
             terminated = True
             info = {"reason": "goal_reached"}
@@ -103,7 +120,7 @@ class EscapeRoomEnv(gym.Env):
         return state, reward, terminated, truncated, info
 
     def reset(self):
-        self.robot = Robot([400, 300], init_angle=0)
+        self.robot = Robot([self.spawn_x, self.spawn_y], init_angle=0)
         self.t = 0  # Reset the timestep counter
         info = {
             "message": "Environment reset."
@@ -123,16 +140,30 @@ class EscapeRoomEnv(gym.Env):
             info,
         )
 
-    def has_reached_goal(self, position):
-        x, y = position
-        # Check if the robot's position is within the defined goal area
-        if GOAL_X_MIN <= x <= GOAL_X_MAX and GOAL_Y_MIN <= y <= GOAL_Y_MAX:
-            return True
+    def has_reached_goal(self):
+        # robot_rect = (
+        #     self.robot.get_collision_rect()
+        # )  # Assuming get_collision_rect() provides the current robot rect
+        # goal_checkpoint = self.checkpoints[
+        #     -1
+        # ]  # Assuming the 'G' checkpoint is the last one in the list
+
+        # if goal_checkpoint.label == "G" and goal_checkpoint.check_collision(robot_rect):
+        #     goal_checkpoint.reached = True
+        #     return True
         return False
 
     def render(self, mode="human"):
         if mode == "human":
             self.screen.fill((255, 255, 255))  # Clear the screen
+            for wall in self.walls:
+                wall.draw(self.screen)
+
+            for checkpoint in self.checkpoints:
+                checkpoint.draw(
+                    self.screen
+                )  # This will only draw checkpoints if not reached
+
             draw_robot(self.screen, self.robot)
             pygame.display.flip()
             self.clock.tick(30)
@@ -145,7 +176,7 @@ class EscapeRoomEnv(gym.Env):
 if __name__ == "__main__":
     env = EscapeRoomEnv()
     try:
-        for _ in range(500):
+        for _ in range(1000):
             action = env.action_space.sample()
             env.step(action)
             env.render()
