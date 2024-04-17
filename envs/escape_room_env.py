@@ -17,7 +17,7 @@ from constants import (
 
 
 class EscapeRoomEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, continuous=False):
         super().__init__()
         ### Observation Space
         ### Observation Shape (8,) [ X, Y, Theta, Vx, Vy, Omega, ] #Have to add robot arm
@@ -48,13 +48,22 @@ class EscapeRoomEnv(gym.Env):
             ]
         )
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
+        self.goal_pos = np.array([700, 700])
 
+        self.continuous = continuous
         self.max_vel = MAX_WHEEL_VELOCITY
-        self.action_space = spaces.Box(
-            low=np.array([-1, -1]),
-            high=np.array([1, 1]),
-            dtype=np.float32,
-        )
+
+        # Define action space
+        if self.continuous:
+            # continuous action space
+            self.action_space = spaces.Box(
+                low=np.array([-1, -1]),
+                high=np.array([1, 1]),
+                dtype=np.float32,
+            )
+        else:
+            # Discrete action space: 0 - Forward, 1 - Backward, 2 - Stop, 3 - Rotate Left, 4 - Rotate Right
+            self.action_space = spaces.Discrete(5)
 
         self.robot = Robot((400, 300))
         self.max_steps_per_episode = 2000
@@ -67,9 +76,24 @@ class EscapeRoomEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action), "Action is out of bounds!"
 
-        # Scale actions from [-1, 1] to actual velocity values [-max_vel, max_vel]
-        left_vel = action[0] * self.max_vel
-        right_vel = action[1] * self.max_vel
+        if self.continuous:
+            # Scale actions from [-1, 1] to actual velocity values [-max_vel, max_vel]
+            left_vel = action[0] * self.max_vel
+            right_vel = action[1] * self.max_vel
+        else:
+            # Map discrete actions to velocities
+            if action == 0:  # Forward
+                left_vel, right_vel = self.max_vel, self.max_vel
+            elif action == 1:  # Backward
+                left_vel, right_vel = -self.max_vel, -self.max_vel
+            elif action == 2:  # Stop
+                left_vel, right_vel = 0, 0
+            elif action == 3:  # Rotate Left
+                left_vel, right_vel = -self.max_vel, self.max_vel
+            elif action == 4:  # Rotate Right
+                left_vel, right_vel = self.max_vel, -self.max_vel
+            else:
+                left_vel, right_vel = 0, 0  # Default to stop if invalid action
 
         penalty, out_of_bounds = self.robot.update_position(left_vel, right_vel, dt=1)
         reward = penalty
@@ -125,8 +149,11 @@ class EscapeRoomEnv(gym.Env):
 
     def has_reached_goal(self, position):
         x, y = position
-        # Check if the robot's position is within the defined goal area
-        if GOAL_X_MIN <= x <= GOAL_X_MAX and GOAL_Y_MIN <= y <= GOAL_Y_MAX:
+        # Calculate euclidean distance to goal position
+        dist_to_goal = np.sqrt(
+            (x - self.goal_pos[0]) ** 2 + (y - self.goal_pos[1]) ** 2
+        )
+        if dist_to_goal <= 0.1:
             return True
         return False
 
