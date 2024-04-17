@@ -1,9 +1,10 @@
-import time
-import gym
-from gym import spaces
-import pygame
-import numpy as np
 import math
+import time
+
+import gym
+import numpy as np
+import pygame
+from gym import spaces
 
 # Constants for environment and robot dimensions
 ENV_WIDTH, ENV_HEIGHT = 1000, 800
