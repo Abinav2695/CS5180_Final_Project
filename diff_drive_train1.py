@@ -8,6 +8,16 @@ def main():
     env = EscapeRoomEnv()
 
     # Hyperparameters
+    ## Legend Parameters for training
+    # num_steps = 1_500_000
+    # num_saves = 5  # Save models at 0%, 25%, 50%, 75% and 100% of training
+
+    # replay_size = 200_000
+    # replay_prepopulate_steps = 50_000
+
+    # batch_size = 64
+    # exploration = ExponentialSchedule(1.0, 0.05, 1_000_000)
+
     gamma = 0.99
     num_steps = 500_000  # Train for a substantial number of steps
     num_saves = 5  # Save models periodically during training

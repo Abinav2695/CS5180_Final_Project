@@ -11,7 +11,7 @@ from utils.drawing_utils import draw_robot
 
 
 class EscapeRoomEnv(gym.Env):
-    def __init__(self, continuous=False):
+    def __init__(self, max_steps_per_episode=2000, continuous=False):
         super().__init__()
         ### Observation Space
         ### Observation Shape (8,) [ X, Y, Theta, Vx, Vy, Omega, ] #Have to add robot arm
@@ -20,8 +20,8 @@ class EscapeRoomEnv(gym.Env):
         ### Observation Low [-1.5 -1.5 -3.14 -5. -5. -5. ]  These are percentages 0-1 = 0%- 100% so 1.5 = 150%
         # these are bounds for position. Realistically the environment should have ended
         # long before we reach more than 50% outside
-        self.spawn_x = 200
-        self.spawn_y = 200
+        self.spawn_x = 70
+        self.spawn_y = 70
         self.goal_position = np.array([950, 750])
 
         self.walls = [Wall(**wall_data) for wall_data in walls_mapping]
@@ -81,7 +81,7 @@ class EscapeRoomEnv(gym.Env):
         }
 
         self.robot = Robot((self.spawn_x, self.spawn_y))
-        self.max_steps_per_episode = 2000
+        self.max_steps_per_episode = max_steps_per_episode
         self.t = 0  ##Time step counter
 
         # pygame display initialization
@@ -216,6 +216,8 @@ class EscapeRoomEnv(gym.Env):
         info = {
             "message": "Environment reset."
         }  # Optionally provide more info about the reset
+        self.screen = None
+        self.clock = None
         # Return the complete state including velocities
         return (
             np.array(

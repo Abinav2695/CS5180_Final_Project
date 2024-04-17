@@ -136,7 +136,7 @@ def train_dqn(
     rewards = []
 
     # Initialize structures to store the models at different stages of training
-    t_saves = np.linspace(0, num_steps, num_saves, endpoint=False).astype(int)
+    t_saves = np.linspace(0, num_steps, num_saves - 1, endpoint=False)
     saved_models = {}
 
     # Begin training
@@ -196,7 +196,8 @@ def train_dqn(
 
         # Save models periodically
         if t_total in t_saves:
-            saved_models[f"model_{t_total}"] = copy.deepcopy(dqn_model)
+            model_name = f"{100 * t_total / num_steps:04.1f}".replace(".", "_")
+            saved_models[model_name] = copy.deepcopy(dqn_model)
 
     # Save the final model
     saved_models["final"] = copy.deepcopy(dqn_model)
