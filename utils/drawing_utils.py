@@ -9,7 +9,7 @@ from robots.robot import Robot
 def draw_robot(screen, robot):
     pygame.draw.circle(screen, (128, 128, 128), (robot.x, robot.y), ROBOT_RADIUS)
     draw_wheels(screen, robot)
-    draw_link(screen, robot)
+    # draw_link(screen, robot)
 
 
 def draw_wheels(screen, robot):

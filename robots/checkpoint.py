@@ -1,5 +1,5 @@
-import pygame
 import numpy as np
+import pygame
 
 
 class Checkpoint:
@@ -20,7 +20,7 @@ class Checkpoint:
             text_rect = text.get_rect(center=self.center_pos)
             screen.blit(text, text_rect)
 
-    def check_goal_reached(self, robot_pos, delta=1):
+    def check_goal_reached(self, robot_pos, delta=2):
         """Check if the robot has reached this checkpoint.
         Args:
             robot_pos (tuple): The (x, y) position of the robot.
