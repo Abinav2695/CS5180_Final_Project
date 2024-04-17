@@ -10,6 +10,10 @@ from constants import (
     LINK_LENGTH_MAX,
     AXEL_LENGTH,
 )
+from walls import Wall,all_walls
+
+
+
 
 
 class Robot:
@@ -25,7 +29,7 @@ class Robot:
         """Normalize an angle to the range [-pi, pi]."""
         return (angle + math.pi) % (2 * math.pi) - math.pi
 
-    def update_position(self, left_vel, right_vel, dt=1):
+    def update_position(self, left_vel, right_vel, walls, dt=1):
         v = (left_vel + right_vel) / 2
         omega = (right_vel - left_vel) / AXEL_LENGTH
         self.theta += omega * dt
@@ -39,13 +43,32 @@ class Robot:
         self.x += self.vx * dt  # Update position based on velocity
         self.y += self.vy * dt
 
-        penalty, out_of_bounds = self.check_boundaries()
+        penalty, out_of_bounds = self.check_boundaries(walls)
         return penalty, out_of_bounds
 
-    def check_boundaries(self):
+    def check_boundaries(self, walls):
+        robot_rect = self.get_collision_rect()
         if self.x < 0 or self.x > ENV_WIDTH or self.y < 0 or self.y > ENV_HEIGHT:
             return -100, True  # Collision penalty and signal that it's out of bounds
-        return 0, False  # No penalty and not out of bounds
+        for wall in walls:
+            if wall.rect.colliderect(robot_rect):
+                return -100, True  # Penalty for colliding with a wall
+        return 0, False  # No penalty if no collision with walls or boundaries
+    
+
+    def get_collision_rect(self):
+        """ Get the collision rectangle encompassing the robot and its wheels. """
+        total_robot_width = ROBOT_RADIUS * 2 + WHEEL_WIDTH
+        total_robot_height = ROBOT_RADIUS * 2
+        return pygame.Rect(
+            self.x - total_robot_width / 2,
+            self.y - total_robot_height / 2,
+            total_robot_width,
+            total_robot_height
+        )
+    
+    
+        
 
     def toggle_gripper(self):
         self.gripper_closed = not self.gripper_closed
