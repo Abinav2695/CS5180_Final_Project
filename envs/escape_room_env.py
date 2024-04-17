@@ -1,21 +1,22 @@
-import pygame
 import gym
-from gym import spaces
 import numpy as np
+import pygame
+from gym import spaces
 
-from robot import Robot
-from drawing_utils import draw_robot
 from constants import (
-    ENV_WIDTH,
     ENV_HEIGHT,
-    MAX_WHEEL_VELOCITY,
+    ENV_WIDTH,
     GOAL_X_MAX,
     GOAL_X_MIN,
     GOAL_Y_MAX,
     GOAL_Y_MIN,
+    MAX_WHEEL_VELOCITY,
 )
-from walls import Wall,all_walls
-from checkpoint import Checkpoint
+from robots.checkpoint import Checkpoint
+from robots.robot import Robot
+from robots.walls import Wall, walls_mapping
+from utils.drawing_utils import draw_robot
+
 
 class EscapeRoomEnv(gym.Env):
     def __init__(self):
@@ -27,16 +28,18 @@ class EscapeRoomEnv(gym.Env):
         ### Observation Low [-1.5 -1.5 -3.14 -5. -5. -5. ]  These are percentages 0-1 = 0%- 100% so 1.5 = 150%
         # these are bounds for position. Realistically the environment should have ended
         # long before we reach more than 50% outside
-        self.spawn_x = 50
-        self.spawn_y = 50
+        self.spawn_x = 200
+        self.spawn_y = 200
+
+        self.walls = [Wall(**wall_data) for wall_data in walls_mapping]
 
         self.checkpoints = [
-        # Checkpoint((100, 100), 40, (255, 0, 0), 'A'),
-        Checkpoint((300, 50), 100, (255, 0, 0), 'A'),
-        Checkpoint((900, 50), 100, (0, 255, 0), 'B'),
-        Checkpoint((50, 750), 100, (0, 0, 255), 'C'),
-        Checkpoint((950, 750), 100, (255, 0, 0), 'G')  # Goal
-            ]
+            # Checkpoint((100, 100), 40, (255, 0, 0), 'A'),
+            Checkpoint((300, 50), 100, (255, 0, 0), "A"),
+            Checkpoint((900, 50), 100, (0, 255, 0), "B"),
+            Checkpoint((50, 750), 100, (0, 0, 255), "C"),
+            Checkpoint((950, 750), 100, (255, 0, 0), "G"),  # Goal
+        ]
 
         low = np.array(
             [
@@ -66,8 +69,6 @@ class EscapeRoomEnv(gym.Env):
             high=np.array([1, 1]),
             dtype=np.float32,
         )
-        wall_thickness = 10
-        self.walls = [Wall(start, end, wall_thickness) for start, end in all_walls]
 
         self.robot = Robot((self.spawn_x, self.spawn_y))
         self.max_steps_per_episode = 2000
@@ -84,15 +85,10 @@ class EscapeRoomEnv(gym.Env):
         left_vel = action[0] * self.max_vel
         right_vel = action[1] * self.max_vel
 
-        penalty, out_of_bounds = self.robot.update_position(left_vel, right_vel, self.walls,dt=1)
+        penalty, out_of_bounds = self.robot.update_and_check_collisions(
+            left_vel, right_vel, self.walls, dt=1
+        )
         reward = penalty
-
-        # Check for checkpoint collisions
-        robot_rect = self.robot.get_collision_rect()
-        for checkpoint in self.checkpoints:
-            if checkpoint.check_collision(robot_rect):
-                checkpoint.reached = True  # Mark the checkpoint as reached
-
 
         state = np.array(
             [
@@ -145,12 +141,16 @@ class EscapeRoomEnv(gym.Env):
         )
 
     def has_reached_goal(self):
-        robot_rect = self.robot.get_collision_rect()  # Assuming get_collision_rect() provides the current robot rect
-        goal_checkpoint = self.checkpoints[-1]  # Assuming the 'G' checkpoint is the last one in the list
+        # robot_rect = (
+        #     self.robot.get_collision_rect()
+        # )  # Assuming get_collision_rect() provides the current robot rect
+        # goal_checkpoint = self.checkpoints[
+        #     -1
+        # ]  # Assuming the 'G' checkpoint is the last one in the list
 
-        if goal_checkpoint.label == 'G' and goal_checkpoint.check_collision(robot_rect):
-            goal_checkpoint.reached = True
-            return True
+        # if goal_checkpoint.label == "G" and goal_checkpoint.check_collision(robot_rect):
+        #     goal_checkpoint.reached = True
+        #     return True
         return False
 
     def render(self, mode="human"):
@@ -160,7 +160,9 @@ class EscapeRoomEnv(gym.Env):
                 wall.draw(self.screen)
 
             for checkpoint in self.checkpoints:
-                checkpoint.draw(self.screen)  # This will only draw checkpoints if not reached
+                checkpoint.draw(
+                    self.screen
+                )  # This will only draw checkpoints if not reached
 
             draw_robot(self.screen, self.robot)
             pygame.display.flip()

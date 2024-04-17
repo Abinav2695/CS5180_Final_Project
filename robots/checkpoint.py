@@ -1,4 +1,6 @@
 import pygame
+
+
 class Checkpoint:
     def __init__(self, center_pos, size, color, label):
         self.center_pos = center_pos
@@ -6,7 +8,9 @@ class Checkpoint:
         self.color = color
         self.label = label
         self.reached = False
-        self.rect = pygame.Rect(center_pos[0] - size // 2, center_pos[1] - size // 2, size, size)
+        self.rect = pygame.Rect(
+            center_pos[0] - size // 2, center_pos[1] - size // 2, size, size
+        )
 
     def draw(self, screen):
         if not self.reached:  # Only draw if the checkpoint hasn't been reached

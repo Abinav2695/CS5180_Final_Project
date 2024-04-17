@@ -1,5 +1,6 @@
-from envs.escape_room_env import EscapeRoomEnv
 import numpy as np
+
+from envs.escape_room_env import EscapeRoomEnv
 
 
 def normalize_angle(angle):
