@@ -53,8 +53,8 @@ def train_diff_robot_custom_env(alpha=0.0001, beta=0.001, tau=0.001, n_games=100
 
         # print(f"Episode {i}: Score {score:.1f}, Average Score {avg_score:.1f}")
         pbar.set_description(
-                f"Episode {i}: Score {score:.1f}, Average Score {avg_score:.1f}"
-            )
+            f"Episode {i}: Score {score:.1f}, Average Score {avg_score:.1f}"
+        )
 
     x = [i + 1 for i in range(n_games)]
     plot_learning_curve(x, score_history, figure_file)
