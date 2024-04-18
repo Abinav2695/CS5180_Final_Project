@@ -69,15 +69,15 @@ class EscapeRoomEnv(gym.Env):
             )
         else:
             # Discrete action space: 0 - Forward, 1 - Backward, 2 - Stop, 3 - Rotate Left, 4 - Rotate Right
-            self.action_space = spaces.Discrete(5)
+            self.action_space = spaces.Discrete(4)
 
         # Define action to velocity mapping
         self.action_to_velocity = {
             0: (self.max_vel, self.max_vel),  # Forward
             1: (-self.max_vel, -self.max_vel),  # Backward
-            2: (0, 0),  # Stop
-            3: (-self.max_vel, self.max_vel),  # Rotate Left
-            4: (self.max_vel, -self.max_vel),  # Rotate Right
+            # 2: (0, 0),  # Stop
+            2: (-self.max_vel, self.max_vel),  # Rotate Left
+            3: (self.max_vel, -self.max_vel),  # Rotate Right
         }
 
         self.robot = Robot((self.spawn_x, self.spawn_y))
@@ -88,15 +88,134 @@ class EscapeRoomEnv(gym.Env):
         self.screen = None
         self.clock = None
 
+    # def step(self, action):
+    #     assert self.action_space.contains(action), "Action is out of bounds!"
+    #     # Penalties and rewards
+    #     step_penalty = 0  # Penalty for each step taken
+    #     distance_reward_factor = 0.1  # Scale factor for distance reward
+
+    #     # Current state before taking the action
+    #     current_pos = np.array([self.robot.x, self.robot.y])
+    #     current_distance = np.linalg.norm(current_pos - self.goal_position)
+
+    #     # Update state by taking an action
+    #     if self.continuous:
+    #         # Scale actions from [-1, 1] to actual velocity values [-max_vel, max_vel]
+    #         left_vel = action[0] * self.max_vel
+    #         right_vel = action[1] * self.max_vel
+    #     else:
+    #         # Map discrete actions to velocities
+    #         left_vel, right_vel = self.action_to_velocity.get(action, (0, 0))
+
+    #     penalty, out_of_bounds = self.robot.update_and_check_collisions(
+    #         left_vel, right_vel, self.walls, dt=1
+    #     )
+    #     # New position after taking the action
+    #     new_pos = np.array([self.robot.x, self.robot.y])
+    #     new_distance = np.linalg.norm(new_pos - self.goal_position)
+
+    #     # Distance reward shaping
+    #     distance_reward = (current_distance - new_distance) * distance_reward_factor
+    #     reward = penalty + distance_reward + step_penalty
+
+    #     state = np.array(
+    #         [
+    #             self.robot.x,
+    #             self.robot.y,
+    #             self.robot.theta,
+    #             self.robot.vx,
+    #             self.robot.vy,
+    #             self.robot.omega,
+    #         ]
+    #     )
+    #     assert len(state) == 6
+    #     self.t += 1
+
+    #     terminated = False
+    #     truncated = False
+    #     info = {}
+
+    #     if self.goal.check_goal_reached((self.robot.x, self.robot.y)):
+    #         reward += 100  # goal reward
+    #         terminated = True
+    #         info = {"reason": "goal_reached"}
+    #     elif out_of_bounds:
+    #         terminated = True
+    #         info = {"reason": "out_of_bounds"}
+    #     elif self.t >= self.max_steps_per_episode:
+    #         truncated = True
+    #         info = {"reason": "max_steps_reached"}
+
+    #     return state, reward, terminated, truncated, info
+
+    # def step_bk(self, action):
+    #     assert self.action_space.contains(action), "Action is out of bounds!"
+    #     # Penalties and rewards
+    #     step_penalty = 0  # Penalty for each step taken
+    #     distance_reward_factor = 0.1  # Scale factor for distance reward
+
+    #     # Current state before taking the action
+    #     current_pos = np.array([self.robot.x, self.robot.y])
+    #     current_distance = np.linalg.norm(current_pos - self.goal_position)
+
+    #     # Update state by taking an action
+    #     if self.continuous:
+    #         # Scale actions from [-1, 1] to actual velocity values [-max_vel, max_vel]
+    #         left_vel = action[0] * self.max_vel
+    #         right_vel = action[1] * self.max_vel
+    #     else:
+    #         # Map discrete actions to velocities
+    #         left_vel, right_vel = self.action_to_velocity.get(action, (0, 0))
+
+    #     penalty, out_of_bounds = self.robot.update_and_check_collisions(
+    #         left_vel, right_vel, self.walls, dt=1
+    #     )
+
+    #     # New position after taking the action
+    #     new_pos = np.array([self.robot.x, self.robot.y])
+    #     new_distance = np.linalg.norm(new_pos - self.goal_position)
+
+    #     # Enhanced Distance reward shaping using exponential scaling
+    #     distance_improvement = current_distance - new_distance
+    #     distance_reward = (np.exp(distance_improvement) - 1) * distance_reward_factor
+    #     reward = penalty + distance_reward + step_penalty
+
+    #     state = np.array(
+    #         [
+    #             self.robot.x,
+    #             self.robot.y,
+    #             self.robot.theta,
+    #             self.robot.vx,
+    #             self.robot.vy,
+    #             self.robot.omega,
+    #         ]
+    #     )
+    #     self.t += 1
+
+    #     terminated = False
+    #     truncated = False
+    #     info = {}
+
+    #     if self.goal.check_goal_reached((self.robot.x, self.robot.y)):
+    #         reward += 100  # goal reward
+    #         terminated = True
+    #         info = {"reason": "goal_reached"}
+    #     elif out_of_bounds:
+    #         # print("Robot Out of bounds")
+    #         terminated = True
+    #         info = {"reason": "out_of_bounds"}
+    #     elif self.t >= self.max_steps_per_episode:
+    #         truncated = True
+    #         info = {"reason": "max_steps_reached"}
+
+    #     return state, reward, terminated, truncated, info
+
     def step(self, action):
         assert self.action_space.contains(action), "Action is out of bounds!"
-        # Penalties and rewards
-        step_penalty = -1  # Penalty for each step taken
-        distance_reward_factor = 0.1  # Scale factor for distance reward
 
-        # Current state before taking the action
+        # Current position before taking the action
         current_pos = np.array([self.robot.x, self.robot.y])
-        current_distance = np.linalg.norm(current_pos - self.goal_position)
+        step_penalty = -0.01
 
         # Update state by taking an action
         if self.continuous:
@@ -104,69 +223,10 @@ class EscapeRoomEnv(gym.Env):
             left_vel = action[0] * self.max_vel
             right_vel = action[1] * self.max_vel
         else:
-            # Map discrete actions to velocities
+            # Map discrete actions to velocities based on the selected action
             left_vel, right_vel = self.action_to_velocity.get(action, (0, 0))
 
-        penalty, out_of_bounds = self.robot.update_and_check_collisions(
-            left_vel, right_vel, self.walls, dt=1
-        )
-        # New position after taking the action
-        new_pos = np.array([self.robot.x, self.robot.y])
-        new_distance = np.linalg.norm(new_pos - self.goal_position)
-
-        # Distance reward shaping
-        distance_reward = (current_distance - new_distance) * distance_reward_factor
-        reward = penalty + distance_reward + step_penalty
-
-        state = np.array(
-            [
-                self.robot.x,
-                self.robot.y,
-                self.robot.theta,
-                self.robot.vx,
-                self.robot.vy,
-                self.robot.omega,
-            ]
-        )
-        assert len(state) == 6
-        self.t += 1
-
-        terminated = False
-        truncated = False
-        info = {}
-
-        if self.goal.check_goal_reached((self.robot.x, self.robot.y)):
-            reward += 100  # goal reward
-            terminated = True
-            info = {"reason": "goal_reached"}
-        elif out_of_bounds:
-            terminated = True
-            info = {"reason": "out_of_bounds"}
-        elif self.t >= self.max_steps_per_episode:
-            truncated = True
-            info = {"reason": "max_steps_reached"}
-
-        return state, reward, terminated, truncated, info
-
-    def step2(self, action):
-        assert self.action_space.contains(action), "Action is out of bounds!"
-        # Penalties and rewards
-        step_penalty = -1  # Penalty for each step taken
-        distance_reward_factor = 0.1  # Scale factor for distance reward
-
-        # Current state before taking the action
-        current_pos = np.array([self.robot.x, self.robot.y])
-        current_distance = np.linalg.norm(current_pos - self.goal_position)
-
-        # Update state by taking an action
-        if self.continuous:
-            # Scale actions from [-1, 1] to actual velocity values [-max_vel, max_vel]
-            left_vel = action[0] * self.max_vel
-            right_vel = action[1] * self.max_vel
-        else:
-            # Map discrete actions to velocities
-            left_vel, right_vel = self.action_to_velocity.get(action, (0, 0))
-
+        # Update the robot's position and check for collisions
         penalty, out_of_bounds = self.robot.update_and_check_collisions(
             left_vel, right_vel, self.walls, dt=1
         )
@@ -175,11 +235,13 @@ class EscapeRoomEnv(gym.Env):
         new_pos = np.array([self.robot.x, self.robot.y])
         new_distance = np.linalg.norm(new_pos - self.goal_position)
 
-        # Enhanced Distance reward shaping using exponential scaling
-        distance_improvement = current_distance - new_distance
-        distance_reward = (np.exp(distance_improvement) - 1) * distance_reward_factor
-        reward = penalty + distance_reward + step_penalty
+        # Calculate the reward as a function of the error in distance
+        error = new_distance
+        reward = (
+            1 / (1 + error)
+        ) + penalty  # Immediate reward based on the distance and penalty for collisions
 
+        # reward = penalty
         state = np.array(
             [
                 self.robot.x,
@@ -197,11 +259,11 @@ class EscapeRoomEnv(gym.Env):
         info = {}
 
         if self.goal.check_goal_reached((self.robot.x, self.robot.y)):
-            reward += 100  # goal reward
+            reward += 100  # Additional reward for reaching the goal
             terminated = True
             info = {"reason": "goal_reached"}
+            print("Goal Reached")
         elif out_of_bounds:
-            print("Robot Out of bounds")
             terminated = True
             info = {"reason": "out_of_bounds"}
         elif self.t >= self.max_steps_per_episode:

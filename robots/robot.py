@@ -27,9 +27,9 @@ class Robot:
         """Normalize an angle to the range [-pi, pi]."""
         return (angle + math.pi) % (2 * math.pi) - math.pi
 
-    def get_collision_circle(self):
+    def get_collision_circle(self, robot_pos):
         """Returns the position and radius for the robot's collision circle."""
-        return (self.x, self.y, ROBOT_RADIUS + WHEEL_WIDTH)
+        return (robot_pos[0], robot_pos[1], ROBOT_RADIUS + WHEEL_WIDTH)
 
     def circle_rect_collision(self, circle, rect: pygame.Rect):
         """Check collision between a circle and a rectangle.
@@ -82,31 +82,81 @@ class Robot:
             tuple: (penalty, collision_flag) where penalty is a numerical value indicating
                 the collision penalty, and collision_flag is a boolean indicating if a collision occurred.
         """
-        # Update position
+        # Store the current position before updating
+        old_x, old_y, old_theta = self.x, self.y, self.theta
+
+        # Calculate new position
         v = (left_vel + right_vel) / 2
         omega = (right_vel - left_vel) / AXEL_LENGTH
-        self.theta += omega * dt
-        self.theta = self.normalize_angle(self.theta)
+        new_theta = old_theta + omega * dt
+        new_theta = self.normalize_angle(new_theta)
 
-        self.vx = v * math.cos(self.theta)
-        self.vy = v * math.sin(self.theta)
-        self.x += self.vx * dt
-        self.y += self.vy * dt
+        vx = v * math.cos(new_theta)
+        vy = v * math.sin(new_theta)
+        new_x = old_x + vx * dt
+        new_y = old_y + vy * dt
 
-        # Check for collisions
+        # Create a circle at the new position for collision detection
+        robot_circle = self.get_collision_circle((new_x, new_y))
+        penalty = 0
         collision_flag = False
-        robot_circle = self.get_collision_circle()
 
         if self.check_boundary_collision(robot_circle):
             collision_flag = True
+            penalty = -100
 
         for wall in walls:
             if self.circle_rect_collision(robot_circle, wall.rect):
-                collision_flag = True
+                penalty += -50
                 break
 
-        penalty = -100 if collision_flag else 0
+        if not collision_flag and penalty < 0:
+            # Revert to previous state if there is a collision
+            self.x, self.y, self.theta = old_x, old_y, old_theta
+        else:
+            # Update to new state since there is no collision
+            self.x, self.y, self.theta = new_x, new_y, new_theta
+
         return (penalty, collision_flag)
+
+    # def update_and_check_collisions(self, left_vel, right_vel, walls, dt=1):
+    #     """Update the robot's position and check for collisions with walls.
+
+    #     Args:
+    #         left_vel (float): Velocity of the left wheel.
+    #         right_vel (float): Velocity of the right wheel.
+    #         dt (int): Time delta.
+    #         walls (list): A list of pygame.Rect objects representing the walls.
+
+    #     Returns:
+    #         tuple: (penalty, collision_flag) where penalty is a numerical value indicating
+    #             the collision penalty, and collision_flag is a boolean indicating if a collision occurred.
+    #     """
+    #     # Update position
+    #     v = (left_vel + right_vel) / 2
+    #     omega = (right_vel - left_vel) / AXEL_LENGTH
+    #     self.theta += omega * dt
+    #     self.theta = self.normalize_angle(self.theta)
+
+    #     self.vx = v * math.cos(self.theta)
+    #     self.vy = v * math.sin(self.theta)
+    #     self.x += self.vx * dt
+    #     self.y += self.vy * dt
+
+    #     # Check for collisions
+    #     collision_flag = False
+    #     robot_circle = self.get_collision_circle()
+
+    #     if self.check_boundary_collision(robot_circle):
+    #         collision_flag = True
+
+    #     for wall in walls:
+    #         if self.circle_rect_collision(robot_circle, wall.rect):
+    #             collision_flag = True
+    #             break
+
+    #     penalty = -100 if collision_flag else 0
+    #     return (penalty, collision_flag)
 
     def toggle_gripper(self):
         self.gripper_closed = not self.gripper_closed

@@ -6,6 +6,7 @@ class Checkpoint:
     def __init__(self, center_pos, radius, color, label, font_size=36):
         self.center_pos = center_pos
         self.radius = radius
+        self.original_color = color
         self.color = color
         self.label = label
         self.font_size = font_size
@@ -43,6 +44,11 @@ class Checkpoint:
                 self.color = (0, 255, 0)  # Change color to green when reached
             return True
         return False
+
+    def reset(self):
+        """Reset the color of the checkpoint to its original color."""
+        self.color = self.original_color
+        self.reached = False
 
 
 if __name__ == "__main__":

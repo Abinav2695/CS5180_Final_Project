@@ -1,5 +1,6 @@
 import copy
 
+import gym
 import numpy as np
 import torch
 import torch.nn as nn
@@ -113,6 +114,12 @@ def train_dqn(
     exploration: ExponentialSchedule,
     gamma,
 ):
+    # Check that environment states are compatible with our DQN representation
+    assert (
+        isinstance(env.observation_space, gym.spaces.Box)
+        and len(env.observation_space.shape) == 1
+    )
+
     device_name = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(device_name)
 
@@ -171,7 +178,7 @@ def train_dqn(
         t_episode += 1
 
         # Training the network
-        if t_total % 4 == 0 and memory.size >= batch_size:
+        if t_total % 4 == 0:
             batch = memory.sample(batch_size)
             # batch = Batch(*[item.to(device) for item in batch])
             loss = train_dqn_batch(
@@ -180,7 +187,7 @@ def train_dqn(
             losses.append(loss)
 
         # Periodically update the target network
-        if t_total % 10000 == 0:
+        if t_total % 10_000 == 0:
             dqn_target.load_state_dict(dqn_model.state_dict())
 
         # Logging progress
@@ -191,7 +198,7 @@ def train_dqn(
             rewards = []
             t_episode = 0
             pbar.set_description(
-                f"Episode {len(returns)}: Return={G:.2f}, Epsilon={eps:.2f}, Loss={loss:.4f}"
+                f"Episode {len(returns)}: Steps : {lengths[-1], }Return={G:.2f}, Epsilon={eps:.2f}, Loss={loss:.4f}"
             )
 
         # Save models periodically

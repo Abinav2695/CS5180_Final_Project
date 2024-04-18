@@ -9,6 +9,8 @@ def main():
 
     # Hyperparameters
     ## Legend Parameters for training
+    gamma = 0.99
+
     # num_steps = 1_500_000
     # num_saves = 5  # Save models at 0%, 25%, 50%, 75% and 100% of training
 
@@ -18,13 +20,12 @@ def main():
     # batch_size = 64
     # exploration = ExponentialSchedule(1.0, 0.05, 1_000_000)
 
-    gamma = 0.99
     num_steps = 500_000  # Train for a substantial number of steps
     num_saves = 5  # Save models periodically during training
     replay_size = 200_000  # Size of the replay buffer
     replay_prepopulate_steps = 50_000  # Initial steps to fill the buffer
     batch_size = 64
-    exploration = ExponentialSchedule(1.0, 0.05, 100_000)  # Exploration strategy
+    exploration = ExponentialSchedule(1.0, 0.05, 1_000_000)  # Exploration strategy
 
     # Train the model
     dqn_models, returns, lengths, losses = train_dqn(
