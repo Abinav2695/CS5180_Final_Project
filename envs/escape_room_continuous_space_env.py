@@ -67,7 +67,7 @@ class EscapeRoomEnv(gym.Env):
         else:
             reward_distance = +np.log1p(self.old_distance) * alpha # Logarithmic penalty for smoother gradient
 
-        reward_efficiency = min(old_distance - new_distance, 0) * (1-alpha) # Only reward forward movement #max
+        reward_efficiency = max(old_distance - new_distance, 0) * (1-alpha) # Only reward forward movement #max
 
         reward = reward_distance + reward_efficiency + penalty
         # Aggregate reward components

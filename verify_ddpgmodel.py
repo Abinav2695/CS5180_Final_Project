@@ -115,4 +115,4 @@ def simulate_trained_model(selected_episodes=[0, 25, 50, 75, 100], render=True):
     # env.close()
 
 if __name__ == "__main__":
-    simulate_trained_model(selected_episodes=[1000])
+    simulate_trained_model(selected_episodes=[0, 25, 50, 75, 100])

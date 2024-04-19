@@ -20,7 +20,7 @@ def plot_learning_curve(x, scores, figure_file):
     os.makedirs(os.path.dirname(figure_file), exist_ok=True)
     
     plt.savefig(figure_file)
-    plt.close()  # Close the plot to avoid memory issues
+    plt.show()  # Close the plot to avoid memory issues
 
 def train_diff_robot_custom_env(alpha=0.0001, beta=0.001, tau=0.001, n_games=5000):
     env = EscapeRoomEnv()  # Assuming EscapeRoomEnv is imported
