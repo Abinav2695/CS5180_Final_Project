@@ -58,7 +58,7 @@ class EscapeRoomEnv(gym.Env):
         new_pos = np.array([self.robot.x, self.robot.y])
         old_distance = self.old_distance  # this needs to be stored after each step
         new_distance = np.linalg.norm(new_pos - self.goal_position)
-        # self.old_distance = new_distance  # update the old distance
+        self.old_distance = new_distance  # update the old distance
 
         alpha = 0.1
         # # Simplified and less penalizing distance reward
