@@ -17,6 +17,7 @@ class EscapeRoomEnv(gym.Env):
         self.spawn_x = 70
         self.spawn_y = 70
         self.goal_position = np.array([950, 750])
+        # self.goal_position = np.array([500, 500])
 
         self.walls = [Wall(**wall_data) for wall_data in walls_mapping]
 
@@ -53,13 +54,31 @@ class EscapeRoomEnv(gym.Env):
         penalty, out_of_bounds = self.robot.update_and_check_collisions(
             left_vel, right_vel, self.walls, dt=1
         )
-
+        
         new_pos = np.array([self.robot.x, self.robot.y])
+        old_distance = self.old_distance  # this needs to be stored after each step
         new_distance = np.linalg.norm(new_pos - self.goal_position)
-        error = new_distance
-        reward = (
-            1 / (1 + error) + penalty
-        )  # Reward based on the distance and collision penalty
+        self.old_distance = new_distance  # update the old distance
+
+        alpha = 0.1
+        # # Simplified and less penalizing distance reward
+        if new_distance > self.old_distance:
+            reward_distance = -np.log1p(new_distance) * alpha # Logarithmic penalty for smoother gradient
+        else:
+            reward_distance = +np.log1p(self.old_distance) * alpha # Logarithmic penalty for smoother gradient
+
+        reward_efficiency = min(old_distance - new_distance, 0) * (1-alpha) # Only reward forward movement #max
+
+        reward = reward_distance + reward_efficiency + penalty
+        # Aggregate reward components
+        # reward = reward_distance + penalty
+
+        # new_pos = np.array([self.robot.x, self.robot.y])
+        # new_distance = np.linalg.norm(new_pos - self.goal_position)
+        # error = new_distance 
+        # reward = (
+        #     1 / (1 + error) + penalty
+        # )  # Reward based on the distance and collision penalty
 
         state = np.array(
             [
@@ -73,23 +92,29 @@ class EscapeRoomEnv(gym.Env):
         )
 
         self.t += 1
-        terminated = (
-            self.goal.check_goal_reached((self.robot.x, self.robot.y)) or out_of_bounds
-        )
-        truncated = self.t >= self.max_steps_per_episode
-        info = {
-            "reason": "goal_reached"
-            if terminated
-            else "max_steps_reached"
-            if truncated
-            else ""
-        }
+        terminated = False
+        truncated = False
+        info = {}
+
+        if self.goal.check_goal_reached((self.robot.x, self.robot.y)):
+            reward += 500  # goal reward
+            terminated = True
+            info = {"reason": "goal_reached"}
+        elif out_of_bounds:
+            terminated = True
+            info = {"reason": "out_of_bounds"}
+        elif self.t >= self.max_steps_per_episode:
+            truncated = True
+            info = {"reason": "max_steps_reached"}
 
         return state, reward, terminated, truncated, info
 
     def reset(self):
         self.robot = Robot([self.spawn_x, self.spawn_y], init_angle=0)
         self.t = 0  # Reset timestep counter
+        self.old_distance = np.linalg.norm(
+            np.array([self.robot.x, self.robot.y]) - self.goal_position
+        )
         self.screen = None
         self.clock = None
         info = {"message": "Environment reset."}
