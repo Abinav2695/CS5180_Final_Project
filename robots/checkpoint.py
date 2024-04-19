@@ -21,7 +21,7 @@ class Checkpoint:
             text_rect = text.get_rect(center=self.center_pos)
             screen.blit(text, text_rect)
 
-    def check_goal_reached(self, robot_pos, delta=2):
+    def check_goal_reached(self, robot_pos, delta=5):
         """Check if the robot has reached this checkpoint.
         Args:
             robot_pos (tuple): The (x, y) position of the robot.
@@ -30,11 +30,14 @@ class Checkpoint:
         Returns:
             bool: True if the checkpoint is reached, otherwise False.
         """
+        if isinstance(robot_pos, np.ndarray):
+            robot_pos = robot_pos.tolist()
+        distance = np.linalg.norm(np.array(self.center_pos) - np.array(robot_pos))
         # distance = pygame.math.Vector2(robot_pos).distance_to(pygame.math.Vector2(self.center_pos))
-        distance = np.sqrt(
-            (robot_pos[0] - self.center_pos[0]) ** 2
-            + (robot_pos[1] - self.center_pos[1]) ** 2
-        )
+        # distance = np.sqrt(
+        #     (robot_pos[0] - self.center_pos[0]) ** 2
+        #     + (robot_pos[1] - self.center_pos[1]) ** 2
+        # )
         # print(f"Distance to checkpoint {self.label} :: {distance}")
         if distance <= delta:
             if not self.reached:

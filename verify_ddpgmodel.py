@@ -85,7 +85,7 @@ def simulate_trained_model(selected_episodes=[0, 25, 50, 75, 100], render=True):
                 env.render()
 
             # Check if the step count has reached 500
-            if step_count >= 500:
+            if step_count >= 1000:
                 print(f"Reached 500 steps on Episode {episode}.")
                 break  # Stop the episode after 500 steps
 
@@ -115,4 +115,6 @@ def simulate_trained_model(selected_episodes=[0, 25, 50, 75, 100], render=True):
     # env.close()
 
 if __name__ == "__main__":
-    simulate_trained_model(selected_episodes=[0, 25, 50, 75, 100])
+    print("Enter the number of Episode ... ")
+    episode = int(input())
+    simulate_trained_model(selected_episodes=[episode])

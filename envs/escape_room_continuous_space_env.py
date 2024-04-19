@@ -11,13 +11,13 @@ from utils.drawing_utils import draw_robot
 
 
 class EscapeRoomEnv(gym.Env):
-    def __init__(self, max_steps_per_episode=2000):
+    def __init__(self, max_steps_per_episode=3000):
         super().__init__()
 
         self.spawn_x = 70
         self.spawn_y = 70
-        self.goal_position = np.array([950, 750])
-        # self.goal_position = np.array([500, 500])
+        self.goal_position = np.array([200, 200])
+        # self.goal_position = np.array([900, 50])
 
         self.walls = [Wall(**wall_data) for wall_data in walls_mapping]
 
@@ -58,7 +58,7 @@ class EscapeRoomEnv(gym.Env):
         new_pos = np.array([self.robot.x, self.robot.y])
         old_distance = self.old_distance  # this needs to be stored after each step
         new_distance = np.linalg.norm(new_pos - self.goal_position)
-        self.old_distance = new_distance  # update the old distance
+        # self.old_distance = new_distance  # update the old distance
 
         alpha = 0.1
         # # Simplified and less penalizing distance reward
@@ -69,7 +69,7 @@ class EscapeRoomEnv(gym.Env):
 
         reward_efficiency = max(old_distance - new_distance, 0) * (1-alpha) # Only reward forward movement #max
 
-        reward = reward_distance + reward_efficiency + penalty
+        reward = reward_distance + reward_efficiency + (penalty * (1-alpha))
         # Aggregate reward components
         # reward = reward_distance + penalty
 
@@ -95,16 +95,17 @@ class EscapeRoomEnv(gym.Env):
         terminated = False
         truncated = False
         info = {}
-
+        
         if self.goal.check_goal_reached((self.robot.x, self.robot.y)):
-            reward += 500  # goal reward
-            terminated = True
+            reward += alpha * 5000  # goal reward
+            terminated = True 
             info = {"reason": "goal_reached"}
         elif out_of_bounds:
             terminated = True
             info = {"reason": "out_of_bounds"}
         elif self.t >= self.max_steps_per_episode:
             truncated = True
+            reward += (alpha - 1)
             info = {"reason": "max_steps_reached"}
 
         return state, reward, terminated, truncated, info

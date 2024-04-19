@@ -22,7 +22,7 @@ def plot_learning_curve(x, scores, figure_file):
     plt.savefig(figure_file)
     plt.show()  # Close the plot to avoid memory issues
 
-def train_diff_robot_custom_env(alpha=0.0001, beta=0.001, tau=0.001, n_games=5000):
+def train_diff_robot_custom_env(alpha=0.0001, beta=0.001, tau=0.001, n_games=200):
     env = EscapeRoomEnv()  # Assuming EscapeRoomEnv is imported
 
     agent = Agent(
@@ -60,16 +60,22 @@ def train_diff_robot_custom_env(alpha=0.0001, beta=0.001, tau=0.001, n_games=500
             agent.learn()
             score += reward
             state = next_state
-
+            
+            
+        best_score = env.reward_range[0]
         score_history.append(score)
         avg_score = np.mean(score_history[-100:]) if len(score_history) > 100 else np.mean(score_history)
 
         pbar.set_description(f"Episode {i}: Score {score:.1f}, Average Score {avg_score:.1f}")
 
         # Save the model at specified milestones
-        if i in milestones:
+        # if i in milestones:
+        #     agent.save_models()
+        #     print(f"Saved models at {i/n_games*100:.0f}% completion")
+            
+        if avg_score > best_score:
+            best_score = avg_score
             agent.save_models()
-            print(f"Saved models at {i/n_games*100:.0f}% completion")
 
     x = [i + 1 for i in range(n_games)]
     plot_learning_curve(x, score_history, figure_file)
