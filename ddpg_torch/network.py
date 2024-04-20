@@ -24,7 +24,7 @@ class CriticNetwork(nn.Module):
         self.n_actions = n_actions
         self.name = name
         self.checkpoint_dir = chkpt_dir
-        self.checkpoint_file = os.path.join(self.checkpoint_dir, name + "_ddpg")
+        self.checkpoint_file = os.path.join(self.checkpoint_dir, name + "_ddpg.pth")
 
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
@@ -75,15 +75,15 @@ class CriticNetwork(nn.Module):
         return state_action_value
 
     def save_checkpoint(self):
-        print("... saving checkpoint ...")
+        # print("... saving checkpoint ...")
         T.save(self.state_dict(), self.checkpoint_file)
 
     def load_checkpoint(self):
-        print("... loading checkpoint ...")
+        # print("... loading checkpoint ...")
         self.load_state_dict(T.load(self.checkpoint_file))
 
     def save_best(self):
-        print("... saving best checkpoint ...")
+        # print("... saving best checkpoint ...")
         checkpoint_file = os.path.join(self.checkpoint_dir, self.name + "_best")
         T.save(self.state_dict(), checkpoint_file)
 
@@ -106,7 +106,7 @@ class ActorNetwork(nn.Module):
         self.n_actions = n_actions
         self.name = name
         self.checkpoint_dir = chkpt_dir
-        self.checkpoint_file = os.path.join(self.checkpoint_dir, name + "_ddpg")
+        self.checkpoint_file = os.path.join(self.checkpoint_dir, name + "_ddpg.pth")
 
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
@@ -148,14 +148,14 @@ class ActorNetwork(nn.Module):
         return x
 
     def save_checkpoint(self):
-        print("... saving checkpoint ...")
+        # print("... saving checkpoint ...")
         T.save(self.state_dict(), self.checkpoint_file)
 
     def load_checkpoint(self):
-        print("... loading checkpoint ...")
+        # print("... loading checkpoint ...")
         self.load_state_dict(T.load(self.checkpoint_file))
 
     def save_best(self):
-        print("... saving best checkpoint ...")
-        checkpoint_file = os.path.join(self.checkpoint_dir, self.name + "_best")
+        # print("... saving best checkpoint ...")
+        checkpoint_file = os.path.join(self.checkpoint_dir, self.name + "_best.pth")
         T.save(self.state_dict(), checkpoint_file)

@@ -215,8 +215,9 @@ class EscapeRoomEnv(gym.Env):
 
         # Current position before taking the action
         current_pos = np.array([self.robot.x, self.robot.y])
-        step_penalty = -0.01
-
+        step_penalty = -0.1
+        reward = 0
+        
         # Update state by taking an action
         if self.continuous:
             # Scale actions from [-1, 1] to actual velocity values [-max_vel, max_vel]
@@ -239,7 +240,7 @@ class EscapeRoomEnv(gym.Env):
         error = new_distance
         reward = (
             1 / (1 + error)
-        ) + penalty  # Immediate reward based on the distance and penalty for collisions
+        ) + penalty + step_penalty # Immediate reward based on the distance and penalty for collisions
 
         # reward = penalty
         state = np.array(

@@ -1,6 +1,6 @@
 import numpy as np
 
-from envs.escape_room_env import EscapeRoomEnv
+from envs.escape_room_continuous_space_env import EscapeRoomEnv
 
 
 def normalize_angle(angle):
@@ -34,9 +34,9 @@ def square_motion():
 
             # Turn right until the robot orientation is approximately the target angle
             while not np.isclose(env.robot.theta, target_angle, atol=0.05):
-                print(
-                    f"Target Angle :: {target_angle}   Robot Angle :: {env.robot.theta}"
-                )
+                # print(
+                #     f"Target Angle :: {target_angle}   Robot Angle :: {env.robot.theta}"
+                # )
                 env.step(turn_right)
                 env.render()
 
@@ -57,7 +57,7 @@ def main():
             action = env.action_space.sample()
             env.step(action)
             env.render()
-            print(f"Robot state :: {env.robot.theta}")
+            # print(f"Robot state :: {env.robot.theta}")
     except KeyboardInterrupt:
         print("Simulation stopped manually.")
     finally:

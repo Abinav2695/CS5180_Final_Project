@@ -3,17 +3,17 @@ import pygame
 from constants import ENV_HEIGHT, ENV_WIDTH
 
 walls_mapping = [
-    {"start_pos": (200, 0), "width": 10, "height": 120},
-    {"start_pos": (200, 280), "width": 10, "height": 140},
-    {"start_pos": (400, 540), "width": 10, "height": 80},
-    {"start_pos": (400, 760), "width": 10, "height": 40},
-    {"start_pos": (650, 390), "width": 10, "height": 220},
-    {"start_pos": (730, 0), "width": 10, "height": 250},
-    {"start_pos": (0, 420), "width": 210, "height": 10},
-    {"start_pos": (0, 540), "width": 400, "height": 10},
-    {"start_pos": (400, 610), "width": 260, "height": 10},
-    {"start_pos": (650, 390), "width": 230, "height": 10},
-    {"start_pos": (880, 250), "width": 120, "height": 10},
+    {"start_pos": (275, 0), "width": 10, "height": 180},
+    {"start_pos": (0, 200), "width": 160, "height": 10},
+    {"start_pos": (200, 350), "width": ENV_WIDTH, "height": 10},
+    # {"start_pos": (400, 760), "width": 10, "height": 40},
+    # {"start_pos": (650, 390), "width": 10, "height": 220},
+    # {"start_pos": (730, 0), "width": 10, "height": 250},
+    # {"start_pos": (0, 420), "width": 210, "height": 10},
+    # {"start_pos": (0, 540), "width": 400, "height": 10},
+    # {"start_pos": (400, 610), "width": 260, "height": 10},
+    # {"start_pos": (650, 390), "width": 230, "height": 10},
+    # {"start_pos": (880, 250), "width": 120, "height": 10},
 ]
 
 

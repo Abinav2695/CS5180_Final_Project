@@ -36,3 +36,4 @@ google-services.json
 #Pycache files
 __pycache__/
 .vscode/
+*.pth

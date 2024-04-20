@@ -103,11 +103,12 @@ class Robot:
 
         if self.check_boundary_collision(robot_circle):
             collision_flag = True
-            penalty = -100
+            penalty = -5
 
         for wall in walls:
             if self.circle_rect_collision(robot_circle, wall.rect):
-                penalty += -50
+                penalty += -2
+                # collision_flag = True
                 break
 
         if not collision_flag and penalty < 0:
